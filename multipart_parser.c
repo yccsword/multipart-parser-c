@@ -125,7 +125,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
 
       /* fallthrough */
       case s_start_boundary:
-        multipart_log("s_start_boundary");
+        multipart_log("s_start_boundary %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (p->index == p->boundary_length) {
           if (c != CR) {
             return i;
@@ -148,13 +148,13 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_header_field_start:
-        multipart_log("s_header_field_start");
+        multipart_log("s_header_field_start %d %02X %c p->index:%d", i,(int)c,c,p->index);
         mark = i;
         p->state = s_header_field;
 
       /* fallthrough */
       case s_header_field:
-        multipart_log("s_header_field");
+        multipart_log("s_header_field %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == CR) {
           p->state = s_headers_almost_done;
           break;
@@ -176,7 +176,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_headers_almost_done:
-        multipart_log("s_headers_almost_done");
+        multipart_log("s_headers_almost_done %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c != LF) {
           return i;
         }
@@ -185,7 +185,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_header_value_start:
-        multipart_log("s_header_value_start");
+        multipart_log("s_header_value_start %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == ' ') {
           break;
         }
@@ -195,7 +195,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
 
       /* fallthrough */
       case s_header_value:
-        multipart_log("s_header_value");
+        multipart_log("s_header_value %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == CR) {
           EMIT_DATA_CB(header_value, buf + mark, i - mark);
           p->state = s_header_value_almost_done;
@@ -206,7 +206,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_header_value_almost_done:
-        multipart_log("s_header_value_almost_done");
+        multipart_log("s_header_value_almost_done %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c != LF) {
           return i;
         }
@@ -214,14 +214,14 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_part_data_start:
-        multipart_log("s_part_data_start");
+        multipart_log("s_part_data_start %d %02X %c p->index:%d", i,(int)c,c,p->index);
         NOTIFY_CB(headers_complete);
         mark = i;
         p->state = s_part_data;
 
       /* fallthrough */
       case s_part_data:
-        multipart_log("s_part_data");
+        multipart_log("s_part_data %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == CR) {
             EMIT_DATA_CB(part_data, buf + mark, i - mark);
             mark = i;
@@ -234,7 +234,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_part_data_almost_boundary:
-        multipart_log("s_part_data_almost_boundary");
+        multipart_log("s_part_data_almost_boundary %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == LF) {
             p->state = s_part_data_boundary;
             p->lookbehind[1] = LF;
@@ -247,7 +247,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_part_data_boundary:
-        multipart_log("s_part_data_boundary");
+        multipart_log("s_part_data_boundary %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (p->multipart_boundary[p->index] != c) {
           EMIT_DATA_CB(part_data, p->lookbehind, 2 + p->index);
           p->state = s_part_data;
@@ -262,7 +262,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         break;
 
       case s_part_data_almost_end:
-        multipart_log("s_part_data_almost_end");
+        multipart_log("s_part_data_almost_end %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == '-') {
             p->state = s_part_data_final_hyphen;
             break;
@@ -274,7 +274,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         return i;
    
       case s_part_data_final_hyphen:
-        multipart_log("s_part_data_final_hyphen");
+        multipart_log("s_part_data_final_hyphen %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == '-') {
             NOTIFY_CB(body_end);
             p->state = s_end;
@@ -283,7 +283,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         return i;
 
       case s_part_data_end:
-        multipart_log("s_part_data_end");
+        multipart_log("s_part_data_end %d %02X %c p->index:%d", i,(int)c,c,p->index);
         if (c == LF) {
             p->state = s_header_field_start;
             NOTIFY_CB(part_data_begin);
